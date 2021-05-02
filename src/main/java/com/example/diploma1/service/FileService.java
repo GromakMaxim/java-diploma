@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
@@ -22,7 +23,7 @@ public class FileService{
                 .filename(resource.getOriginalFilename())
                 .key(UUID.randomUUID().toString())
                 .size(resource.getSize())
-                .uploadDate()
+                .uploadDate(LocalDate.now())
                 .build();
         fileRepository.save(file);
     }
