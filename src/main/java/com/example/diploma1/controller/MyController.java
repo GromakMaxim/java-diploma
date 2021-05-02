@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin(allowCredentials = "true", origins = "http://localhost:8080", maxAge = 3600)
 @RestController
@@ -29,17 +30,25 @@ public class MyController{
 
     @GetMapping(value = "/list", headers = "Accept=application/json")
     @CrossOrigin
-    public List showSavedFiles() {
-        List<IncomingFile> list = new ArrayList<>();
-        list.add(new IncomingFile("first.doc", 5));
-        list.add(new IncomingFile("sec.txt", 5));
-        list.add(new IncomingFile("third.xlsx", 5));
-        return list;
+    public List<IncomingFile> showSavedFiles() {
+        return fileService.show();
     }
 
     @PostMapping(value = "/file")
     @CrossOrigin
-    public void saveFile(@RequestParam("filename") String filename, MultipartFile file) throws IOException {
+    public void saveFile(@RequestParam("filename") String filename, MultipartFile file) {
         fileService.upload(file);
+    }
+
+    @GetMapping(value = "/file")
+    @CrossOrigin
+    public Object downloadFile(@RequestParam("filename") String filename){
+        return fileService.download(filename);
+    }
+
+    @DeleteMapping(value = "/file")
+    @CrossOrigin
+    public void delete(@RequestParam("filename")String filename){
+        fileService.delete(filename);
     }
 }
