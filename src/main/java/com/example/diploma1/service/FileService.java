@@ -40,4 +40,8 @@ public class FileService{
     public List<IncomingFile> show() {
         return fileRepository.findAll();
     }
+
+    public void rename(String originalFilename, String targetFileName) {
+        fileRepository.rename(originalFilename,targetFileName);
+    }
 }
