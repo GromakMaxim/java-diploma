@@ -26,8 +26,11 @@ public class MyController {
     FileService fileService;
 
 
+
+
     @PostMapping("/login")
     public HashMap<String, String> login(@RequestBody User user) {
+
         HashMap<String, String> map = new HashMap<>();
         map.put("auth-token", "qwerty");
         return map;
