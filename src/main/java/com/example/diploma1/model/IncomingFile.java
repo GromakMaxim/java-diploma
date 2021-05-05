@@ -25,6 +25,13 @@ public class IncomingFile {
     private String key;
     @Column
     private LocalDate uploadDate;
+    @Column
+    private String fileType;
+    @Column
+    @Lob
+    private byte[] fileContent;
+    @ManyToOne(cascade = CascadeType.ALL)
+    private User user;
 
     public IncomingFile(String filename, int size) {
         this.filename = filename;

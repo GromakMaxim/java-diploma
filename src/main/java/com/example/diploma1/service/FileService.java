@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -19,18 +20,21 @@ public class FileService{
     private FileRepository fileRepository;
 
     @Transactional(rollbackOn = IOException.class)//в случае падения IOException, все наши сохранения в БД откатятся?
-    public void upload(MultipartFile resource) {
+    public void upload(MultipartFile resource) throws IOException {
         IncomingFile file = IncomingFile.builder()
                 .filename(resource.getOriginalFilename())
                 .key(UUID.randomUUID().toString())
                 .size(resource.getSize())
                 .uploadDate(LocalDate.now())
+                .fileType(resource.getContentType())
+                .fileContent(resource.getInputStream().readAllBytes())
                 .build();
         fileRepository.save(file);
     }
 
-    public Object download(String filename) {
-        return fileRepository.findByFilename(filename);
+    public IncomingFile download(String filename) {
+        Optional<IncomingFile> file = fileRepository.findByFilename(filename);
+        return file.isPresent() ? file.get() : null;
     }
 
     public void delete(String filename) {
