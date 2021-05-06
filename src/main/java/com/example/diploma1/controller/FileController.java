@@ -1,7 +1,6 @@
 package com.example.diploma1.controller;
 
 import com.example.diploma1.model.IncomingFile;
-import com.example.diploma1.model.User;
 import com.example.diploma1.service.FileService;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,26 +14,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 
 @CrossOrigin(allowCredentials = "true", origins = "http://localhost:8080", maxAge = 3600)
 @RestController
-public class MyController {
+public class FileController {
 
     @Autowired
     FileService fileService;
 
-
-
-
-    @PostMapping("/login")
-    public HashMap<String, String> login(@RequestBody User user) {
-
-        HashMap<String, String> map = new HashMap<>();
-        map.put("auth-token", "qwerty");
-        return map;
-    }
 
     @GetMapping(value = "/list", headers = "Accept=application/json")
     @CrossOrigin
