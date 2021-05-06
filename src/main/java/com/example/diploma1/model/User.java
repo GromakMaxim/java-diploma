@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class User {
     @Id
-    private String login;
+    private String username;
     @Column
     private String password;
     @OneToMany(cascade= CascadeType.ALL)

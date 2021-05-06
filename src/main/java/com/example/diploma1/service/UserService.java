@@ -18,13 +18,13 @@ public class UserService {
     @Transactional(rollbackOn = IOException.class)//в случае падения IOException, все наши сохранения в БД откатятся?
     public void createUser(User userData){
         User user = User.builder()
-                .login(userData.getLogin())
+                .username(userData.getUsername())
                 .password(userData.getPassword())
                 .build();
         userRepository.save(user);
     }
 
-    public UserDetails getUserByLogin(String login) {
-        return userRepository.findByLogin(login);
+    public UserDetails getUserByLogin(String username) {
+        return userRepository.findByUsername(username);
     }
 }

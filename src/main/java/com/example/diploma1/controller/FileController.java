@@ -16,7 +16,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 
-@CrossOrigin(allowCredentials = "true", origins = "http://localhost:8080", maxAge = 3600)
 @RestController
 public class FileController {
 
@@ -24,8 +23,7 @@ public class FileController {
     FileService fileService;
 
 
-    @GetMapping(value = "/list", headers = "Accept=application/json")
-    @CrossOrigin
+    @GetMapping(value = "/list")
     public List<IncomingFile> showSavedFiles() {
         return fileService.show();
     }

@@ -30,10 +30,12 @@ public class JwtAuthenticationController {
 
     @PostMapping(value = "/login")
     public HashMap<String, String> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
-        System.out.println(authenticationRequest.getUsername());
+        System.out.println(authenticationRequest.getLogin());
         System.out.println(authenticationRequest.getPassword());
-        //authenticate(authenticationRequest.getLogin(), authenticationRequest.getPassword());
-        final UserDetails userDetails = userService.getUserByLogin(authenticationRequest.getUsername());
+        //authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
+
+
+        final UserDetails userDetails = userService.getUserByLogin(authenticationRequest.getLogin());
 
         final String token = jwtTokenUtil.generateToken(userDetails);
         HashMap<String, String> map = new HashMap<>();
