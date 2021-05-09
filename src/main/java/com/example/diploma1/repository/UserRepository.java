@@ -15,6 +15,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User save(User user);
 
     UserDetails findByLogin(String login);
+    @Query("select u from User u where u.login = :login")
+    User findByLoginReturnUser(String login);
 
     @Modifying
     @Query("update User u set u.token = :token where u.login = :login")

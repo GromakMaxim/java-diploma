@@ -1,6 +1,7 @@
 package com.example.diploma1.controller;
 
 import com.example.diploma1.model.IncomingFile;
+import com.example.diploma1.security.JwtTokenUtil;
 import com.example.diploma1.service.FileService;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,10 +10,10 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
@@ -23,16 +24,20 @@ public class FileController {
     @Autowired
     FileService fileService;
 
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
+
     @GetMapping(value = "/list")
-    //@PreAuthorize("#name == authentication.principal.username")
-    public List<IncomingFile> showSavedFiles() {
-        return fileService.show();
+    public List<IncomingFile> showSavedFiles(HttpServletRequest request) {
+        String tokenRaw = request.getHeader("auth-token");
+        var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+        return fileService.show(usernameFromToken);
     }
 
+
     @PostMapping(value = "/file")
-    @CrossOrigin
-    public void saveFile(@RequestParam("filename") String filename, MultipartFile file) throws IOException {
-        fileService.upload(file);
+    public void saveFile(@RequestParam("filename") String filename, MultipartFile file, HttpServletRequest request) throws IOException {
+        fileService.upload(file, request);
     }
 
     @GetMapping(value = "/file")
@@ -65,18 +70,4 @@ public class FileController {
         JSONObject jsonObject = new JSONObject(json);
         fileService.rename(filename, jsonObject.get("filename").toString());
     }
-
-//    public static String convertStringToBinary(String input) {
-//
-//        StringBuilder result = new StringBuilder();
-//        char[] chars = input.toCharArray();
-//        for (char aChar : chars) {
-//            result.append(
-//                    String.format("%8s", Integer.toBinaryString(aChar))   // char -> int, auto-cast
-//                            .replaceAll(" ", "0")                         // zero pads
-//            );
-//        }
-//        return result.toString();
-//
-//    }
 }

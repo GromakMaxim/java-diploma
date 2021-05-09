@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,6 +17,10 @@ public interface FileRepository extends JpaRepository<IncomingFile, Long> {
     IncomingFile save(IncomingFile file);
 
     Optional<IncomingFile> findByFilename(String filename);
+
+    @Query("select files from IncomingFile files where files.user.login = :username")
+    List<IncomingFile> findAllFilesByUsername(String username);
+
 
     void deleteByFilename(String filename);
 
