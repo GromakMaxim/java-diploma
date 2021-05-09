@@ -16,9 +16,9 @@ public class AppRunner implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        User u1 = User.builder().username("maximgromak@gmail.com").password("12345").build();
-        User u2 = User.builder().username("mr.dezolator@list.ru").password("54321").build();
-        User u3 = User.builder().username("a@a.ru").password("111").build();
+        User u1 = User.builder().login("maximgromak@gmail.com").password("12345").username("maximgromak@gmail.com").build();
+        User u2 = User.builder().login("mr.dezolator@list.ru").password("54321").username("mr.dezolator@list.ru").build();
+        User u3 = User.builder().login("a@a.ru").password("111").username("a@a.ru").build();
 
         userRepository.save(u1);
         userRepository.save(u2);
