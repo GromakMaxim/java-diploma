@@ -32,19 +32,27 @@ public class LoginController {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
         var useragent = request.getHeader("User-Agent");
-
         log.info("Login attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+
+        //check request data with db
         final UserDetails userDetails = userService.getUserByLogin(user.getLogin());
         if (userDetails != null) {
-            final String token = jwtTokenUtil.generateToken(userDetails);
-            userService.addTokenToUser(user.getLogin(), token);
-            log.info("Successful login. Access granted for user: " + user.getLogin() + ". token: " + token);
-            HashMap<String, String> map = new HashMap<>();
-            map.put("auth-token", token);
-            return ResponseEntity.status(200).body(map);
-        } else {
-            log.info("Failure login attempt. Access denied for: ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("such user not found");
+            var name = userDetails.getUsername();
+            var pass = userDetails.getPassword();
+
+            if (name.equals(user.getLogin()) && pass.equals(user.getPassword())) {
+                final String token = jwtTokenUtil.generateToken(userDetails);
+                userService.addTokenToUser(user.getLogin(), token);
+                log.info("Successful login. Access granted for user: " + user.getLogin() + ". token: " + token);
+                HashMap<String, String> map = new HashMap<>();
+                map.put("auth-token", token);
+                return ResponseEntity.status(200).body(map);
+            }
+
         }
+        log.info("Failure login attempt. Access denied for: ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("such user not found");
+
     }
+
 }
