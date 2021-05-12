@@ -1,6 +1,5 @@
 package com.example.diploma1.controller;
 
-import com.example.diploma1.security.JwtRequestFilter;
 import com.example.diploma1.security.JwtTokenUtil;
 import com.example.diploma1.service.UserService;
 import org.slf4j.Logger;
@@ -23,9 +22,6 @@ public class LogoutController {
     @Autowired
     JwtTokenUtil jwtTokenUtil;
 
-    @Autowired
-    JwtRequestFilter jwtRequestFilter;
-
     private static final Logger log = LoggerFactory.getLogger(LogoutController.class);
 
     @GetMapping(value = "/login")
@@ -36,16 +32,23 @@ public class LogoutController {
         log.info("Exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         String tokenRaw = request.getHeader("auth-token");
-        var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
-        final UserDetails userDetails = userService.getUserByLogin(usernameFromToken);
-
-        if (userDetails == null) {
-            log.info("Failed exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
+        String usernameFromToken;
+        try {
+            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+        } catch (NullPointerException npe) {
+            log.info("Failure exit attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
         }
 
-        userService.deleteTokenByUsername(usernameFromToken);
-        log.info("Successful logout. User " + usernameFromToken + " has logged out");
-        return ResponseEntity.status(HttpStatus.OK).body("user quit");
+        var userDetails = userService.getUserByLogin(usernameFromToken);
+        if (userDetails != null) {
+            userService.deleteTokenByUsername(usernameFromToken);
+            log.info("Successful logout. User " + usernameFromToken + " has logged out");
+            return ResponseEntity.status(HttpStatus.OK).body("user quit");
+        }
+
+        log.info("Failed exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
+
     }
 }
