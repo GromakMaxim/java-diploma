@@ -15,7 +15,7 @@ public class UserService {
     public UserDetails getUserByLogin(String login) {
         return userRepository.findByLogin(login);
     }
-    public User getUserByLoginReturUser(String login) {
+    public User getUserByLoginReturnUser(String login) {
         return userRepository.findByLoginReturnUser(login);
     }
 
