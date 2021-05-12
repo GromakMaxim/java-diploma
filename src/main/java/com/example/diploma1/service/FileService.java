@@ -31,7 +31,7 @@ public class FileService{
     public void upload(MultipartFile resource, HttpServletRequest request) throws IOException {
         String tokenRaw = request.getHeader("auth-token");
         var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
-        var user = userService.getUserByLoginReturUser(usernameFromToken);
+        var user = userService.getUserByLoginReturnUser(usernameFromToken);
 
         IncomingFile file = IncomingFile.builder()
                 .filename(resource.getOriginalFilename())
@@ -50,8 +50,8 @@ public class FileService{
         return file.isPresent() ? file.get() : null;
     }
 
-    public void delete(String filename) {
-        fileRepository.deleteByFilename(filename);
+    public void delete(String filename, String username) {
+        fileRepository.deleteByFilename(filename, username);
     }
 
 

@@ -14,7 +14,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,13 +37,28 @@ public class FileController {
 
     @GetMapping(value = "/list")
     public Object showSavedFiles(HttpServletRequest request) {
-        String tokenRaw = request.getHeader("auth-token");
-        var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
-        if (usernameFromToken != null) {
-            return fileService.show(usernameFromToken);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("unauthorized attempt to access files");
+        var ip = request.getRemoteAddr();
+        var hostname = request.getRemoteHost();
+        var useragent = request.getHeader("User-Agent");
+        log.info("Viewing files attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+
+        var tokenRaw = request.getHeader("auth-token");
+        String usernameFromToken;
+        try {
+            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+        } catch (NullPointerException npe) {
+            log.info("Failure viewing attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
         }
+
+        var userDetails = userService.getUserByLogin(usernameFromToken);
+        if (userDetails != null) {
+            log.info("Successful viewing attempt. Access granted for user: " + userDetails.getUsername());
+            return fileService.show(usernameFromToken);
+        }
+        log.info("Failure viewing attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("unauthorized attempt to access files");
+
     }
 
     @PostMapping(value = "/file")
@@ -54,18 +68,22 @@ public class FileController {
         var useragent = request.getHeader("User-Agent");
         log.info("Upload attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String tokenRaw = request.getHeader("auth-token");
-        var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
-        final UserDetails userDetails = userService.getUserByLogin(usernameFromToken);
-
-        if (userDetails == null) {
+        var tokenRaw = request.getHeader("auth-token");
+        String usernameFromToken;
+        try {
+            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+        } catch (NullPointerException npe) {
             log.info("Failed upload attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
         }
-
-        fileService.upload(file, request);
-        log.info("Success upload attempt. User " + usernameFromToken + " uploaded file " + file.getOriginalFilename());
-        return ResponseEntity.status(200).build();
+        var userDetails = userService.getUserByLogin(usernameFromToken);
+        if (userDetails != null) {
+            fileService.upload(file, request);
+            log.info("Success upload attempt. User " + usernameFromToken + " uploaded file " + file.getOriginalFilename());
+            return ResponseEntity.status(200).build();
+        }
+        log.info("Failed upload attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("cant find such token");
     }
 
     @GetMapping(value = "/file")
@@ -73,29 +91,34 @@ public class FileController {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
         var useragent = request.getHeader("User-Agent");
+        log.info("Download attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String tokenRaw = request.getHeader("auth-token");
-        var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
-        final UserDetails userDetails = userService.getUserByLogin(usernameFromToken);
-
-        if (userDetails == null) {
-            log.info("Failed download attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
+        var tokenRaw = request.getHeader("auth-token");
+        String usernameFromToken;
+        try {
+            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+        } catch (NullPointerException npe) {
+            log.info("Failure downloading attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
         }
 
-        IncomingFile file = fileService.download(filename);
-        InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(file.getFileContent()));
-        HttpHeaders headers = new HttpHeaders();
+        var userDetails = userService.getUserByLogin(usernameFromToken);
+        if (userDetails != null) {
+            IncomingFile file = fileService.download(filename);
+            InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(file.getFileContent()));
+            HttpHeaders headers = new HttpHeaders();
 
-        headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", file.getFilename()));
-        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-        headers.add("Pragma", "no-cache");
-        headers.add("Expires", "0");
+            headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", file.getFilename()));
+            headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.add("Pragma", "no-cache");
+            headers.add("Expires", "0");
 
-        ResponseEntity<Object> responseEntity = ResponseEntity.ok().headers(headers).contentLength(
-                file.getFileContent().length).contentType(MediaType.parseMediaType(file.getFileType())).body(resource);
+            return ResponseEntity.ok().headers(headers).contentLength(
+                    file.getFileContent().length).contentType(MediaType.parseMediaType(file.getFileType())).body(resource);
+        }
 
-        return responseEntity;
+        log.info("Failed download attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
     }
 
     @DeleteMapping(value = "/file")
@@ -103,19 +126,25 @@ public class FileController {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
         var useragent = request.getHeader("User-Agent");
+        log.info("Delete attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String tokenRaw = request.getHeader("auth-token");
-        var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
-        final UserDetails userDetails = userService.getUserByLogin(usernameFromToken);
-
-        if (userDetails == null) {
+        var tokenRaw = request.getHeader("auth-token");
+        String usernameFromToken;
+        try {
+            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+        } catch (NullPointerException npe) {
             log.info("Failed delete attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
         }
 
-        fileService.delete(filename);
-        log.info("User " + usernameFromToken + " successfully deleted file " + filename);
-        return ResponseEntity.status(200).build();
+        var userDetails = userService.getUserByLogin(usernameFromToken);
+        if (userDetails != null) {
+            fileService.delete(filename, userDetails.getUsername());
+            log.info("User " + usernameFromToken + " successfully deleted file " + filename);
+            return ResponseEntity.ok("successfully deleted");
+        }
+        log.info("Failed delete attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("unauthorized attempt delete files");
     }
 
     @PutMapping(value = "/file")
@@ -123,20 +152,27 @@ public class FileController {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
         var useragent = request.getHeader("User-Agent");
+        log.info("Renaming attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         String tokenRaw = request.getHeader("auth-token");
-        var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
-        final UserDetails userDetails = userService.getUserByLogin(usernameFromToken);
-
-        if (userDetails == null) {
-            log.info("Failed rename attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
+        String usernameFromToken;
+        try {
+            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+        } catch (NullPointerException npe) {
+            log.info("Failure renaming attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
         }
 
-        JSONObject jsonObject = new JSONObject(json);
-        fileService.rename(filename, jsonObject.get("filename").toString());
-        log.info("User " + usernameFromToken + " renamed file " + filename);
-        return ResponseEntity.status(200).build();
+        var userDetails = userService.getUserByLogin(usernameFromToken);
+        if (userDetails != null) {
+            JSONObject jsonObject = new JSONObject(json);
+            fileService.rename(filename, jsonObject.get("filename").toString());
+            log.info("User " + usernameFromToken + " renamed file " + filename);
+            return ResponseEntity.status(200).body("successfully renamed");
+        }
+
+        log.info("Failed rename attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
     }
 
 }
