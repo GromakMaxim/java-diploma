@@ -1,15 +1,18 @@
 package com.example.diploma1.controller;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.testcontainers.containers.GenericContainer;
 
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class FileControllerTest {
+public class FileControllerTest {
 
     @Autowired
     TestRestTemplate template1;
@@ -20,4 +23,11 @@ class FileControllerTest {
         app.start();
     }
 
+    @Test
+    void doEmptyGET_expect400() {
+        ResponseEntity<String> response = template1.getForEntity("/list", String.class);
+        var expected = HttpStatus.BAD_REQUEST.value();
+        var actual = response.getStatusCodeValue();
+        Assertions.assertEquals(expected, actual);
+    }
 }
