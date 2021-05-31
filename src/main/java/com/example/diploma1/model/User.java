@@ -23,6 +23,9 @@ public class User implements Serializable {
     private String token;
     @Column
     private String password;
-    @OneToMany(cascade= CascadeType.ALL)
+    @OneToMany(cascade= CascadeType.ALL, fetch=FetchType.EAGER)
     private List<IncomingFile> files;
+
+    @Column
+    private String authorities;
 }

@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,14 +26,12 @@ public class FileController {
 
     private FileService fileService;
     private UserService userService;
-    private JwtTokenUtil jwtTokenUtil;
 
     private static final Logger log = LoggerFactory.getLogger(FileController.class);
 
-    public FileController(FileService fileService, UserService userService, JwtTokenUtil jwtTokenUtil) {
+    public FileController(FileService fileService, UserService userService) {
         this.fileService = fileService;
         this.userService = userService;
-        this.jwtTokenUtil = jwtTokenUtil;
     }
 
     @GetMapping(value = "/list")
@@ -41,10 +40,9 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.info("Viewing files attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        var tokenRaw = request.getHeader("auth-token");
         String usernameFromToken;
         try {
-            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (NullPointerException npe) {
             log.info("Failure viewing attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
@@ -52,7 +50,7 @@ public class FileController {
 
         var userDetails = userService.getUserByLogin(usernameFromToken);
         if (userDetails != null) {
-            log.info("Successful viewing attempt. Access granted for user: " + userDetails.getUsername());
+            log.info("Successful viewing attempt. Access granted for user: " + usernameFromToken);
             return fileService.show(usernameFromToken);
         }
         log.info("Failure viewing attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
@@ -66,10 +64,9 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.info("Upload attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        var tokenRaw = request.getHeader("auth-token");
         String usernameFromToken;
         try {
-            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (NullPointerException npe) {
             log.info("Failed upload attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
@@ -90,10 +87,9 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.info("Download attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        var tokenRaw = request.getHeader("auth-token");
         String usernameFromToken;
         try {
-            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (NullPointerException npe) {
             log.info("Failure downloading attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
@@ -124,10 +120,9 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.info("Delete attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        var tokenRaw = request.getHeader("auth-token");
         String usernameFromToken;
         try {
-            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (NullPointerException npe) {
             log.info("Failed delete attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
@@ -149,10 +144,9 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.info("Renaming attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String tokenRaw = request.getHeader("auth-token");
         String usernameFromToken;
         try {
-            usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (NullPointerException npe) {
             log.info("Failure renaming attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
