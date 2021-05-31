@@ -20,10 +20,14 @@ import io.jsonwebtoken.ExpiredJwtException;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
-    @Autowired
+
     private UserService userService;
-    @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    public JwtRequestFilter(UserService userService, JwtTokenUtil jwtTokenUtil) {
+        this.userService = userService;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {

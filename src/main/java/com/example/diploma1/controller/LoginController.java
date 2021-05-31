@@ -19,11 +19,13 @@ import java.util.HashMap;
 @RestController
 public class LoginController {
 
-    @Autowired
     private JwtTokenUtil jwtTokenUtil;
-
-    @Autowired
     private UserService userService;
+
+    public LoginController(JwtTokenUtil jwtTokenUtil, UserService userService) {
+        this.jwtTokenUtil = jwtTokenUtil;
+        this.userService = userService;
+    }
 
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 

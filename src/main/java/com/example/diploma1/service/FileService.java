@@ -18,14 +18,15 @@ import java.util.UUID;
 @Service
 public class FileService{
 
-    @Autowired
     private FileRepository fileRepository;
-
-    @Autowired
     private UserService userService;
+    private JwtTokenUtil jwtTokenUtil;
 
-    @Autowired
-    JwtTokenUtil jwtTokenUtil;
+    public FileService(FileRepository fileRepository, UserService userService, JwtTokenUtil jwtTokenUtil) {
+        this.fileRepository = fileRepository;
+        this.userService = userService;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
     @Transactional(rollbackOn = IOException.class)//в случае падения IOException, все наши сохранения в БД откатятся?
     public void upload(MultipartFile resource, HttpServletRequest request) throws IOException {

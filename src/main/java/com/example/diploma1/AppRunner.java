@@ -2,7 +2,6 @@ package com.example.diploma1;
 
 import com.example.diploma1.model.User;
 import com.example.diploma1.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,8 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class AppRunner implements CommandLineRunner {
 
-    @Autowired
     private UserRepository userRepository;
+
+    public AppRunner(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     @Transactional

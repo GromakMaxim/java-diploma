@@ -24,16 +24,17 @@ import java.io.IOException;
 @RestController
 public class FileController {
 
-    @Autowired
-    FileService fileService;
-
-    @Autowired
-    UserService userService;
-
-    @Autowired
-    JwtTokenUtil jwtTokenUtil;
+    private FileService fileService;
+    private UserService userService;
+    private JwtTokenUtil jwtTokenUtil;
 
     private static final Logger log = LoggerFactory.getLogger(FileController.class);
+
+    public FileController(FileService fileService, UserService userService, JwtTokenUtil jwtTokenUtil) {
+        this.fileService = fileService;
+        this.userService = userService;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
     @GetMapping(value = "/list")
     public Object showSavedFiles(HttpServletRequest request) {
