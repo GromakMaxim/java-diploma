@@ -8,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,10 +36,9 @@ public class FileController {
     }
 
     @GetMapping(value = "/list")
-    public Object showSavedFiles(HttpServletRequest request) {
+    public Object showSavedFiles(@RequestHeader("User-Agent") String useragent, HttpServletRequest request) {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
-        var useragent = request.getHeader("User-Agent");
         log.info("Viewing files attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         var tokenRaw = request.getHeader("auth-token");
@@ -63,10 +61,9 @@ public class FileController {
     }
 
     @PostMapping(value = "/file")
-    public ResponseEntity<?> saveFile(@RequestParam("filename") String filename, MultipartFile file, HttpServletRequest request) throws IOException {
+    public ResponseEntity<?> saveFile(@RequestHeader("User-Agent") String useragent, MultipartFile file, HttpServletRequest request) throws IOException {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
-        var useragent = request.getHeader("User-Agent");
         log.info("Upload attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         var tokenRaw = request.getHeader("auth-token");
@@ -88,10 +85,9 @@ public class FileController {
     }
 
     @GetMapping(value = "/file")
-    public ResponseEntity<Object> downloadFile(@RequestParam("filename") String filename, HttpServletRequest request) {
+    public ResponseEntity<Object> downloadFile(@RequestHeader("User-Agent") String useragent, @RequestParam("filename") String filename, HttpServletRequest request) {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
-        var useragent = request.getHeader("User-Agent");
         log.info("Download attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         var tokenRaw = request.getHeader("auth-token");
@@ -123,10 +119,9 @@ public class FileController {
     }
 
     @DeleteMapping(value = "/file")
-    public ResponseEntity<?> deleteFile(@RequestParam("filename") String filename, HttpServletRequest request) {
+    public ResponseEntity<?> deleteFile(@RequestHeader("User-Agent") String useragent, @RequestParam("filename") String filename, HttpServletRequest request) {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
-        var useragent = request.getHeader("User-Agent");
         log.info("Delete attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         var tokenRaw = request.getHeader("auth-token");
@@ -149,10 +144,9 @@ public class FileController {
     }
 
     @PutMapping(value = "/file")
-    public ResponseEntity<?> renameFile(@RequestParam("filename") String filename, @RequestBody String json, HttpServletRequest request) throws JSONException {
+    public ResponseEntity<?> renameFile(@RequestHeader("User-Agent") String useragent, @RequestParam("filename") String filename, @RequestBody String json, HttpServletRequest request) throws JSONException {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
-        var useragent = request.getHeader("User-Agent");
         log.info("Renaming attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         String tokenRaw = request.getHeader("auth-token");

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,10 +26,9 @@ public class LogoutController {
     private static final Logger log = LoggerFactory.getLogger(LogoutController.class);
 
     @GetMapping(value = "/login")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    public ResponseEntity<?> logout(@RequestHeader("User-Agent") String useragent, HttpServletRequest request) {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
-        var useragent = request.getHeader("User-Agent");
         log.info("Exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         String tokenRaw = request.getHeader("auth-token");

@@ -5,12 +5,12 @@ import com.example.diploma1.security.JwtTokenUtil;
 import com.example.diploma1.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,10 +30,9 @@ public class LoginController {
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
     @PostMapping(value = "/login")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody User user, HttpServletRequest request) {
+    public ResponseEntity<?> createAuthenticationToken(@RequestHeader("User-Agent") String useragent, @RequestBody User user, HttpServletRequest request) {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
-        var useragent = request.getHeader("User-Agent");
         log.info("Login attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         //check request data with db
