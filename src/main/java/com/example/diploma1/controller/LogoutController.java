@@ -1,9 +1,8 @@
 package com.example.diploma1.controller;
 
-import com.example.diploma1.security.JwtTokenUtil;
 import com.example.diploma1.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,38 +13,34 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
+@AllArgsConstructor
+@Slf4j
 public class LogoutController {
 
     private UserService userService;
-
-    public LogoutController(UserService userService) {
-        this.userService = userService;
-    }
-
-    private static final Logger log = LoggerFactory.getLogger(LogoutController.class);
 
     @GetMapping(value = "/login")
     public ResponseEntity<?> logout(@RequestHeader("User-Agent") String useragent, HttpServletRequest request) {
         var ip = request.getRemoteAddr();
         var hostname = request.getRemoteHost();
-        log.info("Exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        log.debug("Exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         String usernameFromToken;
         try {
             usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
         } catch (NullPointerException npe) {
-            log.info("Failure exit attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+            log.debug("Failure exit attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
         }
 
         var userDetails = userService.getUserByLogin(usernameFromToken);
         if (userDetails != null) {
             userService.deleteTokenByUsername(usernameFromToken);
-            log.info("Successful logout. User " + usernameFromToken + " has logged out");
+            log.debug("Successful logout. User " + usernameFromToken + " has logged out");
             return ResponseEntity.status(HttpStatus.OK).body("user quit");
         }
 
-        log.info("Failed exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
+        log.debug("Failed exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
 
     }
