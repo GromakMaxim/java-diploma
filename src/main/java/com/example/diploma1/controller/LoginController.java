@@ -1,13 +1,12 @@
 package com.example.diploma1.controller;
 
 import com.example.diploma1.model.User;
-import com.example.diploma1.security.JwtTokenUtil;
-import com.example.diploma1.service.UserService;
+import com.example.diploma1.service.LoginFormDataValidator;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -17,15 +16,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
 @RestController
+@AllArgsConstructor
 public class LoginController {
 
-    private JwtTokenUtil jwtTokenUtil;
-    private UserService userService;
-
-    public LoginController(JwtTokenUtil jwtTokenUtil, UserService userService) {
-        this.jwtTokenUtil = jwtTokenUtil;
-        this.userService = userService;
-    }
+    private LoginFormDataValidator loginFormDataValidator;
 
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
@@ -36,20 +30,13 @@ public class LoginController {
         log.info("Login attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
         //check request data with db
-        final UserDetails userDetails = userService.getUserByLogin(user.getLogin());
-        if (userDetails != null) {
-            var name = userDetails.getUsername();
-            var pass = userDetails.getPassword();
+        var token = loginFormDataValidator.generateTokenIfUserIsRegistered(user);
 
-            if (name.equals(user.getLogin()) && pass.equals(user.getPassword())) {
-                final String token = jwtTokenUtil.generateToken(userDetails);
-                userService.addTokenToUser(user.getLogin(), token);
-                log.info("Successful login. Access granted for user: " + user.getLogin() + ". token: " + token);
-                HashMap<String, String> map = new HashMap<>();
-                map.put("auth-token", token);
-                return ResponseEntity.status(200).body(map);
-            }
-
+        if (!token.equals("")){
+            log.info("Successful login. Access granted for user: " + user.getLogin() + ". token: " + token);
+            HashMap<String, String> map = new HashMap<>();
+            map.put("auth-token", token);
+            return ResponseEntity.status(200).body(map);
         }
         log.info("Failure login attempt. Access denied for: ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("such user not found");
