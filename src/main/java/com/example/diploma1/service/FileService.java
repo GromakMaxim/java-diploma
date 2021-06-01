@@ -7,7 +7,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -15,12 +14,11 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
-public class FileService{
+public class FileService {
 
     private FileRepository fileRepository;
     private UserService userService;
 
-    @Transactional(rollbackOn = IOException.class)//в случае падения IOException, все наши сохранения в БД откатятся?
     public void upload(MultipartFile resource) throws IOException {
         var usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
         var user = userService.getUserByLoginReturnUser(usernameFromToken);
@@ -51,6 +49,6 @@ public class FileService{
     }
 
     public void rename(String originalFilename, String targetFileName) {
-        fileRepository.rename(originalFilename,targetFileName);
+        fileRepository.rename(originalFilename, targetFileName);
     }
 }
