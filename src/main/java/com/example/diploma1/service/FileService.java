@@ -2,12 +2,11 @@ package com.example.diploma1.service;
 
 import com.example.diploma1.model.IncomingFile;
 import com.example.diploma1.repository.FileRepository;
-import com.example.diploma1.security.JwtTokenUtil;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -20,15 +19,13 @@ public class FileService{
 
     private FileRepository fileRepository;
     private UserService userService;
-    private JwtTokenUtil jwtTokenUtil;
 
     @Transactional(rollbackOn = IOException.class)//в случае падения IOException, все наши сохранения в БД откатятся?
-    public void upload(MultipartFile resource, HttpServletRequest request) throws IOException {
-        var tokenRaw = request.getHeader("auth-token");
-        var usernameFromToken = jwtTokenUtil.getUserNameFromTokenRaw(tokenRaw);
+    public void upload(MultipartFile resource) throws IOException {
+        var usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
         var user = userService.getUserByLoginReturnUser(usernameFromToken);
 
-        IncomingFile file = IncomingFile.builder()
+        var file = IncomingFile.builder()
                 .filename(resource.getOriginalFilename())
                 .key(UUID.randomUUID().toString())
                 .size(resource.getSize())

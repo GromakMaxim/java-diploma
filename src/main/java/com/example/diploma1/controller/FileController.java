@@ -73,7 +73,7 @@ public class FileController {
         }
         var userDetails = userService.getUserByLogin(usernameFromToken);
         if (userDetails != null) {
-            fileService.upload(file, request);
+            fileService.upload(file);
             log.info("Success upload attempt. User " + usernameFromToken + " uploaded file " + file.getOriginalFilename());
             return ResponseEntity.status(200).build();
         }
