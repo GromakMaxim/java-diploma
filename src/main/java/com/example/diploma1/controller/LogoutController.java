@@ -25,12 +25,10 @@ public class LogoutController {
         var hostname = request.getRemoteHost();
         log.debug("Exit attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String usernameFromToken;
-        try {
-            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-        } catch (NullPointerException npe) {
+        var usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (usernameFromToken.equalsIgnoreCase("anonymousUser")){
             log.debug("Failure exit attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("wrong token");
         }
 
         var userDetails = userService.getUserByLogin(usernameFromToken);

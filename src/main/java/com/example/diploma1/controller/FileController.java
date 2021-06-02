@@ -34,12 +34,10 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.debug("Viewing files attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String usernameFromToken;
-        try {
-            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-        } catch (NullPointerException npe) {
+        var usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (usernameFromToken.equalsIgnoreCase("anonymousUser")){
             log.debug("Failure viewing attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("wrong token");
         }
 
         var userDetails = userService.getUserByLogin(usernameFromToken);
@@ -58,13 +56,12 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.debug("Upload attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String usernameFromToken;
-        try {
-            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-        } catch (NullPointerException npe) {
+        var usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (usernameFromToken.equalsIgnoreCase("anonymousUser")){
             log.debug("Failed upload attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
         }
+
         var userDetails = userService.getUserByLogin(usernameFromToken);
         if (userDetails != null) {
             fileService.upload(file);
@@ -81,10 +78,8 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.debug("Download attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String usernameFromToken;
-        try {
-            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-        } catch (NullPointerException npe) {
+        var usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (usernameFromToken.equalsIgnoreCase("anonymousUser")){
             log.debug("Failure downloading attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
         }
@@ -114,10 +109,8 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.debug("Delete attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String usernameFromToken;
-        try {
-            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-        } catch (NullPointerException npe) {
+        var usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (usernameFromToken.equalsIgnoreCase("anonymousUser")){
             log.debug("Failed delete attempt. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cant find such token");
         }
@@ -138,10 +131,8 @@ public class FileController {
         var hostname = request.getRemoteHost();
         log.debug("Renaming attempt. ip" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
 
-        String usernameFromToken;
-        try {
-            usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-        } catch (NullPointerException npe) {
+        var usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (usernameFromToken.equalsIgnoreCase("anonymousUser")){
             log.debug("Failure renaming attempt. Wrong token. ip:" + ip + " hostname:" + hostname + " User-Agent:" + useragent);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unreadable token");
         }
